@@ -1,0 +1,379 @@
+diff -Nuar o/configure m/configure
+--- o/configure	2014-08-22 03:36:31.000000000 +0300
++++ m/configure	2014-09-24 03:28:45.000000000 +0300
+@@ -236,7 +236,11 @@
+         for item in ${lib}; do
+             for ext in ${lib_exts}; do
+                 printf "Checking for '${item}.${ext}'... "
+-                where="$( gcc -print-file-name="${item}.${ext}" )"
++                # where="$( gcc -print-file-name="${item}.${ext}" )"
++                where="${item}.${ext}"
++                if [ -e "/usr/lib/${item}.${ext}" ]; then
++                    where="/usr/lib/${item}.${ext}"
++                fi
+                 if [ "${where}" != "${item}.${ext}" ]; then
+                     where="$( readlink "${where}" )"
+                     status=yes
+diff -Nuar o/contrib/linaro/patches/eglibc/linaro-2.19-2014.08/001-libintl.patch m/contrib/linaro/patches/eglibc/linaro-2.19-2014.08/001-libintl.patch
+--- o/contrib/linaro/patches/eglibc/linaro-2.19-2014.08/001-libintl.patch	1970-01-01 02:00:00.000000000 +0200
++++ m/contrib/linaro/patches/eglibc/linaro-2.19-2014.08/001-libintl.patch	2014-09-26 00:06:41.000000000 +0300
+@@ -0,0 +1,11 @@
++diff -Nuar o/Makefile.in m/Makefile.in
++--- o/Makefile.in	2014-08-01 17:39:34.000000000 +0300
+++++ m/Makefile.in	2014-09-26 00:06:30.000000000 +0300
++@@ -6,6 +6,7 @@
++ .PHONY: all install bench
++ 
++ all .DEFAULT:
+++	C_INCLUDE_PATH="/opt/local/include" BUILD_LDFLAGS="-L/opt/local/lib -lintl"; export C_INCLUDE_PATH BUILD_LDFLAGS; \
++ 	$(MAKE) -r PARALLELMFLAGS="$(PARALLELMFLAGS)" -C $(srcdir) objdir=`pwd` $@
++ 
++ install:
+diff -Nuar o/contrib/linaro/patches/gcc/linaro-4.9-2014.08/0002-nested-bracket.patch m/contrib/linaro/patches/gcc/linaro-4.9-2014.08/0002-nested-bracket.patch
+--- o/contrib/linaro/patches/gcc/linaro-4.9-2014.08/0002-nested-bracket.patch	1970-01-01 02:00:00.000000000 +0200
++++ m/contrib/linaro/patches/gcc/linaro-4.9-2014.08/0002-nested-bracket.patch	2014-09-24 03:28:45.000000000 +0300
+@@ -0,0 +1,13 @@
++diff -Naur o/Makefile.in m/Makefile.in
++--- o/Makefile.in	2014-09-24 00:49:00.000000000 +0300
+++++ m/Makefile.in	2014-09-24 02:49:29.000000000 +0300
++@@ -9986,6 +9986,9 @@
++ 	test ! -f $(HOST_SUBDIR)/gcc/Makefile || exit 0; \
++ 	$(SHELL) $(srcdir)/mkinstalldirs $(HOST_SUBDIR)/gcc ; \
++ 	$(HOST_EXPORTS)  \
+++	CFLAGS="$(CFLAGS) -fbracket-depth=1024"; export CFLAGS; \
+++	CXXFLAGS="$(CXXFLAGS) -fbracket-depth=1024"; export CXXFLAGS; \
+++	CPPFLAGS="$(CPPFLAGS) -fbracket-depth=1024"; export CPPFLAGS; \
++ 	echo Configuring in $(HOST_SUBDIR)/gcc; \
++ 	cd "$(HOST_SUBDIR)/gcc" || exit 1; \
++ 	case $(srcdir) in \
+diff -Nuar o/kconfig/kconfig.mk m/kconfig/kconfig.mk
+--- o/kconfig/kconfig.mk	2014-08-22 03:36:31.000000000 +0300
++++ m/kconfig/kconfig.mk	2014-09-24 03:28:45.000000000 +0300
+@@ -67,7 +67,7 @@
+ 
+ # Build flags
+ CFLAGS = -DCONFIG_=\"CT_\" -DPACKAGE="\"crosstool-NG $(CT_VERSION)\""
+-LDFLAGS =
++LDFLAGS = -lncurses
+ 
+ # Compiler flags to use gettext
+ INTL_CFLAGS = $(shell $(SHELL) $(check_gettext) $(HOST_CC) $(EXTRA_CFLAGS))
+diff -Nuar o/patches/eglibc/2_14/001_various.patch m/patches/eglibc/2_14/001_various.patch
+--- o/patches/eglibc/2_14/001_various.patch	1970-01-01 02:00:00.000000000 +0200
++++ m/patches/eglibc/2_14/001_various.patch	2014-09-27 02:11:04.000000000 +0300
+@@ -0,0 +1,136 @@
++diff -Nuar o/configure m/configure
++--- o/configure	2014-09-26 23:47:25.000000000 +0300
+++++ m/configure	2014-09-26 23:59:11.000000000 +0300
++@@ -4907,7 +4907,13 @@
++ NM=`$CC -print-prog-name=nm`
++ 
++ OBJDUMP=`$CC -print-prog-name=objdump`
++-
+++if [ "${OBJDUMP}" == "objdump" ]; then
+++   if [ "`echo "${CC}" | grep "^gcc"`" == "" ]; then
+++      OBJDUMP="`echo ${CC} | awk -F "-gcc" {'print $1'}`-objdump"
+++   else 
+++      OBJDUMP="objdump"
+++   fi
+++fi
++ 
++ # Determine whether we are using GNU binutils.
++ { $as_echo "$as_me:$LINENO: checking whether $AS is GNU as" >&5
++diff -Nuar o/posix/Makefile m/posix/Makefile
++--- o/posix/Makefile	2014-09-27 02:08:16.000000000 +0300
+++++ m/posix/Makefile	2014-09-27 02:10:16.000000000 +0300
++@@ -362,8 +362,10 @@
++ 	$(addprefix $(..)./scripts/mkinstalldirs ,\
++ 		    $(filter-out $(wildcard $@),$@))
++ 	while read spec; do \
++-	  ln -f $< $@/$$spec.new || $(INSTALL_PROGRAM) $< $@/$$spec.new; \
++-	  mv -f $@/$$spec.new $@/$$spec; \
+++	  if [ "${spec}" != "" ]; then \
+++	    ln -f $< $@/$$spec.new || $(INSTALL_PROGRAM) $< $@/$$spec.new; \
+++	    mv -f $@/$$spec.new $@/$$spec; \
+++	  fi \
++ 	done < $(objpfx)getconf.speclist
++ 
++ # eglibc: If we are cross-compiling, build cross-getconf utility and use it
++diff -Nuar o/string/stpncpy.c m/string/stpncpy.c
++--- o/string/stpncpy.c	2014-09-26 18:58:57.000000000 +0300
+++++ m/string/stpncpy.c	2014-09-26 19:28:21.000000000 +0300
++@@ -30,7 +30,7 @@
++ 
++ #ifndef STPNCPY
++ # ifdef weak_alias
++-#  define STPNCPY	__stpncpy
+++#  define STPNCPY	(__stpncpy)
++ weak_alias (__stpncpy, stpncpy)
++ # else
++ #  define STPNCPY	stpncpy
++@@ -40,7 +40,7 @@
++ /* Copy no more than N characters of SRC to DEST, returning the address of
++    the terminating '\0' in DEST, if any, or else DEST + N.  */
++ char *
++-STPNCPY (char *dest, const char *src, size_t n)
+++(STPNCPY) (char *dest, const char *src, size_t n)
++ {
++   char c;
++   char *s = dest;
++diff -Nuar o/sunrpc/Makefile m/sunrpc/Makefile
++--- o/sunrpc/Makefile	2014-09-26 21:18:44.000000000 +0300
+++++ m/sunrpc/Makefile	2014-09-26 21:22:16.000000000 +0300
++@@ -175,11 +175,11 @@
++ 	$(+link)
++ 
++ $(addprefix $(objpfx)cross-,$(rpcgen-objs)): $(objpfx)cross-%.o: %.c
++-	gcc $< -c -D_RPC_THREAD_SAFE_ -D_CROSS_RPCGEN_ \
+++	gcc $< -c -D_RPC_THREAD_SAFE_ -D_CROSS_RPCGEN_ -I/opt/local/include \
++ 		$(OUTPUT_OPTION) $(compile-mkdep-flags)
++ 
++ $(objpfx)cross-rpcgen: $(addprefix $(objpfx)cross-,$(rpcgen-objs))
++-	gcc $^ -o $@
+++	gcc $^ -o $@ -L/opt/local/lib -lintl
++ 
++ # This makes sure -DNOT_IN_libc is passed for all these modules.
++ cpp-srcs-left := $(rpcgen-objs:.o=.c)
++diff -Nuar o/sunrpc/proto.h m/sunrpc/proto.h
++--- o/sunrpc/proto.h	2014-09-26 20:25:36.000000000 +0300
+++++ m/sunrpc/proto.h	2014-09-26 21:52:56.000000000 +0300
++@@ -58,7 +58,7 @@
++ 
++ /* Rather then defining _GNU_SOURCE before including $build's <string.h>
++    we just declare stpcpy here.  */
++-extern char *stpcpy (char *, const char *);
+++extern char *(stpcpy) (char *, const char *);
++ 
++ /* Use $build's i18n support as we can't use $host's.  */
++ #define _(X) (gettext (X))
++diff -Nuar o/sunrpc/rpc/types.h m/sunrpc/rpc/types.h
++--- o/sunrpc/rpc/types.h	2014-09-26 20:25:36.000000000 +0300
+++++ m/sunrpc/rpc/types.h	2014-09-26 20:50:52.000000000 +0300
++@@ -69,6 +69,23 @@
++ #include <sys/types.h>
++ #endif
++ 
+++#ifdef __APPLE__
+++#ifndef __u_char_defined
+++typedef u_char __u_char;
+++typedef u_short __u_short;
+++typedef u_int __u_int;
+++typedef u_long __u_long;
+++typedef int64_t __quad_t;
+++typedef u_quad_t __u_quad_t;
+++// typedef fsid_t __fsid_t;
+++# define __u_char_defined
+++#endif
+++#ifndef __daddr_t_defined
+++typedef daddr_t __daddr_t;
+++typedef caddr_t __caddr_t;
+++# define __daddr_t_defined
+++#endif
+++#else
++ #ifndef __u_char_defined
++ typedef __u_char u_char;
++ typedef __u_short u_short;
++@@ -84,6 +101,7 @@
++ typedef __caddr_t caddr_t;
++ # define __daddr_t_defined
++ #endif
+++#endif
++ 
++ #include <sys/time.h>
++ #include <sys/param.h>
++diff -Nuar o/timezone/Makefile m/timezone/Makefile
++--- o/timezone/Makefile	2014-09-26 22:07:48.000000000 +0300
+++++ m/timezone/Makefile	2014-09-26 22:09:21.000000000 +0300
++@@ -181,11 +181,11 @@
++ $(objpfx)zic: $(addprefix $(objpfx), $(zic-objs))
++ 
++ $(addprefix $(objpfx)cross-,$(zic-objs)): $(objpfx)cross-%.o: %.c
++-	gcc $< -c $(OUTPUT_OPTION) $(CFLAGS-$*.c) $(CPPFLAGS-$*) \
+++	gcc $< -c $(OUTPUT_OPTION) $(CFLAGS-$*.c) $(CPPFLAGS-$*) -I/opt/local/include \
++ 		-DCROSS_ZIC $(compile-mkdep-flags)
++ 
++ $(objpfx)cross-zic: $(addprefix $(objpfx)cross-,$(zic-objs))
++-	gcc $(addprefix $(objpfx)cross-,$(zic-objs)) -o $@
+++	gcc $(addprefix $(objpfx)cross-,$(zic-objs)) -o $@ -L/opt/local/lib -lintl
++ 
++ tz-cflags = -DTZDIR='"$(zonedir)"' \
++ 	    -DTZDEFAULT='"$(localtime-file)"' \
+diff -Nuar o/patches/linux/2.6.27.57/001-fortify.patch m/patches/linux/2.6.27.57/001-fortify.patch
+--- o/patches/linux/2.6.27.57/001-fortify.patch	1970-01-01 02:00:00.000000000 +0200
++++ m/patches/linux/2.6.27.57/001-fortify.patch	2014-09-24 14:12:00.000000000 +0300
+@@ -0,0 +1,12 @@
++diff -Nuar o/Makefile m/Makefile
++--- o/Makefile	2010-12-09 23:24:40.000000000 +0200
+++++ m/Makefile	2014-09-24 14:08:23.000000000 +0300
++@@ -221,7 +221,7 @@
++ 
++ HOSTCC       = gcc
++ HOSTCXX      = g++
++-HOSTCFLAGS   = -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer
+++HOSTCFLAGS   = -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer -D_FORTIFY_SOURCE=0
++ HOSTCXXFLAGS = -O2
++ 
++ # Decide whether to build built-in, modular, or both.
+diff -Nuar o/patches/ncurses/5.9/001-pointer.patch m/patches/ncurses/5.9/001-pointer.patch
+--- o/patches/ncurses/5.9/001-pointer.patch	1970-01-01 02:00:00.000000000 +0200
++++ m/patches/ncurses/5.9/001-pointer.patch	2014-09-24 03:35:16.000000000 +0300
+@@ -0,0 +1,42 @@
++diff -Nuar o/c++/cursesf.h m/c++/cursesf.h
++--- o/c++/cursesf.h	2005-08-13 21:08:24.000000000 +0300
+++++ m/c++/cursesf.h	2014-09-23 00:01:02.000000000 +0300
++@@ -681,7 +681,7 @@
++ 		   const T* p_UserData = STATIC_CAST(T*)(0),
++ 		   bool with_frame=FALSE,
++ 		   bool autoDelete_Fields=FALSE)
++-    : NCursesForm (Fields, with_frame, autoDelete_Fields) {
+++    : NCursesForm (&Fields, with_frame, autoDelete_Fields) {
++       if (form)
++ 	set_user (const_cast<void *>(p_UserData));
++   };
++@@ -694,7 +694,7 @@
++ 		   const T* p_UserData = STATIC_CAST(T*)(0),
++ 		   bool with_frame=FALSE,
++ 		   bool autoDelete_Fields=FALSE)
++-    : NCursesForm (Fields, nlines, ncols, begin_y, begin_x,
+++    : NCursesForm (&Fields, nlines, ncols, begin_y, begin_x,
++ 		   with_frame, autoDelete_Fields) {
++       if (form)
++ 	set_user (const_cast<void *>(p_UserData));
++diff -Nuar o/c++/cursesm.h m/c++/cursesm.h
++--- o/c++/cursesm.h	2005-08-13 21:10:36.000000000 +0300
+++++ m/c++/cursesm.h	2014-09-23 00:03:01.000000000 +0300
++@@ -639,7 +639,7 @@
++ 		   const T* p_UserData = STATIC_CAST(T*)(0),
++ 		   bool with_frame=FALSE,
++ 		   bool autoDelete_Items=FALSE)
++-    : NCursesMenu (Items, with_frame, autoDelete_Items) {
+++    : NCursesMenu (&Items, with_frame, autoDelete_Items) {
++       if (menu)
++ 	set_user (const_cast<void *>(p_UserData));
++   };
++@@ -651,7 +651,7 @@
++ 		   int begin_x = 0,
++ 		   const T* p_UserData = STATIC_CAST(T*)(0),
++ 		   bool with_frame=FALSE)
++-    : NCursesMenu (Items, nlines, ncols, begin_y, begin_x, with_frame) {
+++    : NCursesMenu (&Items, nlines, ncols, begin_y, begin_x, with_frame) {
++       if (menu)
++ 	set_user (const_cast<void *>(p_UserData));
++   };
+diff -Nuar o/patches/uClibc/0.9.32/180-osx-strlcpy-macro-fix.patch m/patches/uClibc/0.9.32/180-osx-strlcpy-macro-fix.patch
+--- o/patches/uClibc/0.9.32/180-osx-strlcpy-macro-fix.patch	1970-01-01 02:00:00.000000000 +0200
++++ m/patches/uClibc/0.9.32/180-osx-strlcpy-macro-fix.patch	2014-09-27 18:01:46.000000000 +0300
+@@ -0,0 +1,12 @@
++diff -Nuar o/extra/scripts/unifdef.c m/extra/scripts/unifdef.c
++--- o/extra/scripts/unifdef.c	2014-09-27 17:59:58.000000000 +0300
+++++ m/extra/scripts/unifdef.c	2014-09-27 18:00:12.000000000 +0300
++@@ -78,7 +78,7 @@
++ #define errx(exit_code, fmt, args...) ({ warnx(fmt, ## args); exit(exit_code); })
++ #define err(exit_code, fmt, args...)  errx(exit_code, fmt ": %s", ## args, strerror(errno))
++ 
++-size_t strlcpy(char *dst, const char *src, size_t siz);
+++size_t (strlcpy)(char *dst, const char *src, size_t siz);
++ 
++ /* types of input lines: */
++ typedef enum {
+diff -Nuar o/scripts/build/cc/gcc.sh m/scripts/build/cc/gcc.sh
+--- o/scripts/build/cc/gcc.sh	2014-08-22 03:36:31.000000000 +0300
++++ m/scripts/build/cc/gcc.sh	2014-09-28 19:00:02.000000000 +0300
+@@ -489,6 +489,11 @@
+     fi
+ 
+     for tmp in ARCH ABI CPU TUNE FPU FLOAT; do
++        if [ "${CT_ARCH}" == "x86" ]; then
++           if [ "${tmp}" == "FLOAT" ]; then
++              continue
++           fi
++        fi
+         eval tmp="\${CT_ARCH_WITH_${tmp}}"
+         if [ -n "${tmp}" ]; then
+             extra_config+=("${tmp}")
+diff -Nuar o/scripts/build/cross_extras/500-pkg_config.sh m/scripts/build/cross_extras/500-pkg_config.sh
+--- o/scripts/build/cross_extras/500-pkg_config.sh	2014-08-22 03:36:31.000000000 +0300
++++ m/scripts/build/cross_extras/500-pkg_config.sh	2014-09-24 03:28:45.000000000 +0300
+@@ -20,6 +20,7 @@
+     CT_Pushd "${CT_BUILD_DIR}/build-pkg-config"
+ 
+     CT_DoExecLog CFG \
++        CFLAGS="-std=gnu89" \
+         "${CT_SRC_DIR}/pkg-config-${CT_PKG_CONFIG_VERSION}/configure" \
+         --prefix="${CT_PREFIX_DIR}"            \
+         --build=${CT_BUILD}                    \
+diff -Nuar o/scripts/build/libc/glibc-eglibc.sh-common m/scripts/build/libc/glibc-eglibc.sh-common
+--- o/scripts/build/libc/glibc-eglibc.sh-common	2014-08-22 03:36:31.000000000 +0300
++++ m/scripts/build/libc/glibc-eglibc.sh-common	2014-09-28 04:08:21.000000000 +0300
+@@ -107,7 +107,7 @@
+             # glibc can't be built without -O2 (reference needed!)
+             OPTIMIZE=-O2
+             # Also, if those two are missing, iconv build breaks
+-            extra_config+=( --disable-debug --disable-sanity-checks )
++            extra_config+=( --disable-debug --disable-sanity-checks libc_cv_forced_unwind=yes libc_cv_c_cleanup=yes )
+             ;;
+     esac
+ 
+diff -Nuar o/scripts/build/libc/uClibc.sh m/scripts/build/libc/uClibc.sh
+--- o/scripts/build/libc/uClibc.sh	2014-08-22 03:36:31.000000000 +0300
++++ m/scripts/build/libc/uClibc.sh	2014-09-27 17:25:02.000000000 +0300
+@@ -79,6 +79,9 @@
+     cd "${CT_BUILD_DIR}/build-libc-headers"
+ 
+     # Retrieve the config file
++    if [ ! -e "${CT_CONFIG_DIR}/uClibc.config" ]; then
++       cp "${CT_LIBC_UCLIBC_CONFIG_FILE}" "${CT_CONFIG_DIR}/uClibc.config"
++    fi
+     CT_DoExecLog ALL cp "${CT_CONFIG_DIR}/uClibc.config" .config
+ 
+     # uClibc uses the CROSS environment variable as a prefix to the
+diff -Nuar o/scripts/crosstool-NG.sh.in m/scripts/crosstool-NG.sh.in
+--- o/scripts/crosstool-NG.sh.in	2014-08-22 03:36:31.000000000 +0300
++++ m/scripts/crosstool-NG.sh.in	2014-09-28 21:45:15.000000000 +0300
+@@ -148,8 +148,13 @@
+ CT_CC_CORE_EXTRA_CONFIG_ARRAY=( ${CT_ARCH_CC_CORE_EXTRA_CONFIG} "${CT_CC_CORE_EXTRA_CONFIG_ARRAY[@]}" )
+ CT_CC_EXTRA_CONFIG_ARRAY=( ${CT_ARCH_CC_EXTRA_CONFIG} "${CT_CC_EXTRA_CONFIG_ARRAY[@]}" )
+ 
++CT_SYS_USER=$(id -un)
++CT_SYS_HOSTNAME=$(hostname -f 2>/dev/null || true)
++# Hmmm. Some non-DHCP-enabled machines do not have an FQDN... Fall back to node name.
++CT_SYS_HOSTNAME="${CT_SYS_HOSTNAME:-$(uname -n)}"
++
+ # Compute the package version string
+-CT_PKGVERSION="crosstool-NG ${CT_VERSION}${CT_TOOLCHAIN_PKGVERSION:+ - ${CT_TOOLCHAIN_PKGVERSION}}"
++CT_PKGVERSION="crosstool-NG ${CT_VERSION} (ctworks/${CT_SYS_USER}@${CT_SYS_HOSTNAME})${CT_TOOLCHAIN_PKGVERSION:+ - ${CT_TOOLCHAIN_PKGVERSION}}"
+ 
+ # Compute the working directories names
+ CT_TARBALLS_DIR="${CT_WORK_DIR}/tarballs"
+@@ -192,10 +197,6 @@
+ 
+ # Good, now grab a bit of informations on the system we're being run on,
+ # just in case something goes awok, and it's not our fault:
+-CT_SYS_USER=$(id -un)
+-CT_SYS_HOSTNAME=$(hostname -f 2>/dev/null || true)
+-# Hmmm. Some non-DHCP-enabled machines do not have an FQDN... Fall back to node name.
+-CT_SYS_HOSTNAME="${CT_SYS_HOSTNAME:-$(uname -n)}"
+ CT_SYS_KERNEL=$(uname -s)
+ CT_SYS_REVISION=$(uname -r)
+ CT_SYS_OS=$(uname -s)
+@@ -203,7 +204,7 @@
+ CT_SYS_PROCESSOR=$(uname -p)
+ CT_SYS_GCC=$(gcc -dumpversion)
+ CT_SYS_TARGET=$(CT_DoConfigGuess)
+-CT_TOOLCHAIN_ID="crosstool-${CT_VERSION} build ${CT_STAR_DATE_HUMAN} by ${CT_SYS_USER}@${CT_SYS_HOSTNAME}"
++CT_TOOLCHAIN_ID="crosstool-${CT_VERSION} build ${CT_STAR_DATE_HUMAN} by ctworks/${CT_SYS_USER}@${CT_SYS_HOSTNAME}"
+ 
+ CT_DoLog EXTRA "Preparing working directories"
+ 
+diff -Nuar o/scripts/functions m/scripts/functions
+--- o/scripts/functions	2014-08-22 03:36:31.000000000 +0300
++++ m/scripts/functions	2014-09-26 20:02:12.000000000 +0300
+@@ -1196,7 +1196,7 @@
+     CT_DoLog STATE "  Restoring log file"
+     exec >/dev/null
+     case "${CT_DEBUG_CT_SAVE_STEPS_GZIP}" in
+-        y)  zcat "${state_dir}/log.gz" >"${tmp_log_file}";;
++        y)  gzcat "${state_dir}/log.gz" >"${tmp_log_file}";;
+         *)  cat "${state_dir}/log" >"${tmp_log_file}";;
+     esac
+     cat "${state_dir}/tail.log" >>"${tmp_log_file}"
