@@ -276,6 +276,27 @@ diff -Nuar o/patches/uClibc/0.9.32/180-osx-strlcpy-macro-fix.patch m/patches/uCl
 + 
 + /* types of input lines: */
 + typedef enum {
+diff -Nuar o/patches/gmp/5.0.2/100-fix-ptrdiff_t.patch m/patches/gmp/5.0.2/100-fix-ptrdiff_t.patch
+--- o/patches/gmp/5.0.2/100-fix-ptrdiff_t.patch	1970-01-01 02:00:00.000000000 +0200
++++ m/patches/gmp/5.0.2/100-fix-ptrdiff_t.patch	2016-04-02 19:46:38.000000000 +0300
+@@ -0,0 +1,17 @@
++diff -Nuar o/gmp-h.in m/gmp-h.in
++--- o/gmp-h.in	2011-05-08 12:49:29.000000000 +0300
+++++ m/gmp-h.in	2016-04-02 19:45:03.000000000 +0300
++@@ -45,13 +45,11 @@
++ #ifndef __GNU_MP__
++ #define __GNU_MP__ 5
++ 
++-#define __need_size_t  /* tell gcc stddef.h we only want size_t */
++ #if defined (__cplusplus)
++ #include <cstddef>     /* for size_t */
++ #else
++ #include <stddef.h>    /* for size_t */
++ #endif
++-#undef __need_size_t
++ 
++ /* Instantiated by configure. */
++ #if ! defined (__GMP_WITHIN_CONFIGURE)
 diff -Nuar o/scripts/build/cc/gcc.sh m/scripts/build/cc/gcc.sh
 --- o/scripts/build/cc/gcc.sh	2014-08-22 03:36:31.000000000 +0300
 +++ m/scripts/build/cc/gcc.sh	2014-09-28 19:00:02.000000000 +0300

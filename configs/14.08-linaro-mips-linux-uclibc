@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # crosstool-NG linaro-1.13.1-4.9-2014.08 Configuration
-# Sat Sep 27 06:22:45 2014
+# Sat Sep 27 19:19:59 2014
 #
 CT_CONFIGURE_has_xzutils=y
 CT_CONFIGURE_has_svn=y
@@ -25,9 +25,10 @@ CT_DEBUG_CT_SAVE_STEPS_GZIP=y
 #
 # Paths
 #
-CT_LOCAL_TARBALLS_DIR=""
+CT_LOCAL_TARBALLS_DIR="__CTWORKS_DIR__/tarballs"
+CT_SAVE_TARBALLS=y
 CT_WORK_DIR="${CT_TOP_DIR}/.build"
-CT_PREFIX_DIR="/opt/devel/projects/crosstool/disk/${CT_TARGET}"
+CT_PREFIX_DIR="__CTWORKS_DIR__/disk/${CT_TARGET}"
 CT_INSTALL_DIR="${CT_PREFIX_DIR}"
 CT_RM_RF_PREFIX_DIR=y
 CT_REMOVE_DOCS=y
@@ -102,8 +103,8 @@ CT_ARCH_DEFAULT_BE=y
 CT_ARCH_DEFAULT_32=y
 CT_ARCH_ARCH=""
 CT_ARCH_TUNE=""
-# CT_ARCH_BE is not set
-CT_ARCH_LE=y
+CT_ARCH_BE=y
+# CT_ARCH_LE is not set
 CT_ARCH_32=y
 # CT_ARCH_64 is not set
 CT_ARCH_BITNESS=32
@@ -262,7 +263,6 @@ CT_BINUTILS_2_18_or_later=y
 CT_BINUTILS_HAS_GOLD=y
 CT_BINUTILS_HAS_PLUGINS=y
 CT_BINUTILS_HAS_PKGVERSION_BUGURL=y
-CT_BINUTILS_FORCE_LD_BFD=y
 CT_BINUTILS_LINKER_LD=y
 CT_BINUTILS_LINKERS_LIST="ld"
 CT_BINUTILS_LINKER_DEFAULT="bfd"
@@ -383,41 +383,42 @@ CT_CC_GCC_mips_synci=m
 #
 # C-library
 #
-CT_LIBC="eglibc"
-CT_LIBC_VERSION="2_14"
-CT_LIBC_eglibc=y
+CT_LIBC="uClibc"
+CT_LIBC_VERSION="0.9.32"
+# CT_LIBC_eglibc is not set
 # CT_LIBC_glibc is not set
-# CT_LIBC_uClibc is not set
+CT_LIBC_uClibc=y
 CT_LIBC_eglibc_AVAILABLE=y
-# CT_LIBC_EGLIBC_LINARO_V_2_19_2014_08 is not set
-CT_LIBC_EGLIBC_V_2_14=y
-# CT_LIBC_EGLIBC_V_2_13 is not set
-# CT_LIBC_EGLIBC_V_2_12 is not set
-# CT_LIBC_EGLIBC_V_2_11 is not set
-# CT_LIBC_EGLIBC_V_2_10 is not set
-# CT_LIBC_EGLIBC_V_2_9 is not set
-# CT_LIBC_EGLIBC_V_TRUNK is not set
-CT_LIBC_EGLIBC_2_14_or_later=y
-CT_LIBC_EGLIBC_2_13_or_later=y
-CT_LIBC_EGLIBC_2_12_or_later=y
-CT_LIBC_EGLIBC_2_11_or_later=y
-CT_LIBC_EGLIBC_2_10_or_later=y
-CT_LIBC_EGLIBC_2_9_or_later=y
-CT_LIBC_EGLIBC_HAS_PKGVERSION_BUGURL=y
-CT_EGLIBC_REVISION="HEAD"
-# CT_EGLIBC_HTTP is not set
-# CT_EGLIBC_CHECKOUT is not set
-# CT_EGLIBC_OPT_SIZE is not set
-# CT_EGLIBC_CUSTOM_CONFIG is not set
 CT_LIBC_glibc_AVAILABLE=y
 CT_LIBC_mingw_AVAILABLE=y
 CT_LIBC_newlib_AVAILABLE=y
 CT_LIBC_none_AVAILABLE=y
 CT_LIBC_prebuilt_AVAILABLE=y
 CT_LIBC_uClibc_AVAILABLE=y
+CT_LIBC_UCLIBC_V_0_9_32=y
+# CT_LIBC_UCLIBC_V_0_9_31 is not set
+# CT_LIBC_UCLIBC_V_0_9_30_3 is not set
+# CT_LIBC_UCLIBC_V_0_9_30_2 is not set
+# CT_LIBC_UCLIBC_V_0_9_30_1 is not set
+# CT_LIBC_UCLIBC_V_0_9_30 is not set
+# CT_LIBC_UCLIBC_V_snapshot is not set
+# CT_LIBC_UCLIBC_V_specific_date is not set
+CT_LIBC_UCLIBC_0_9_32_or_later=y
+CT_LIBC_UCLIBC_0_9_30_or_later=y
+CT_LIBC_UCLIBC_PARALLEL=y
+# CT_LIBC_UCLIBC_VERBOSITY_0 is not set
+CT_LIBC_UCLIBC_VERBOSITY_1=y
+# CT_LIBC_UCLIBC_VERBOSITY_2 is not set
+CT_LIBC_UCLIBC_VERBOSITY="V=1"
+CT_LIBC_UCLIBC_DEBUG_LEVEL_0=y
+# CT_LIBC_UCLIBC_DEBUG_LEVEL_1 is not set
+# CT_LIBC_UCLIBC_DEBUG_LEVEL_2 is not set
+CT_LIBC_UCLIBC_DEBUG_LEVEL=0
+CT_LIBC_UCLIBC_CONFIG_FILE="__CTWORKS_DIR__/configs/linaro-mips-linux-uclibc-uClibc-0.9.32.config"
 CT_LIBC_SUPPORT_THREADS_ANY=y
 CT_LIBC_SUPPORT_NPTL=y
 CT_LIBC_SUPPORT_LINUXTHREADS=y
+CT_LIBC_SUPPORT_THREADS_NONE=y
 CT_THREADS="nptl"
 
 #
@@ -425,48 +426,15 @@ CT_THREADS="nptl"
 #
 CT_THREADS_NPTL=y
 # CT_THREADS_LINUXTHREADS is not set
+# CT_THREADS_NONE is not set
 CT_LIBC_XLDD=y
 
 #
-# eglibc other options
+# uClibc other options
 #
-CT_LIBC_GLIBC_MAY_FORCE_PORTS=y
-CT_LIBC_glibc_familly=y
-CT_LIBC_GLIBC_EXTRA_CONFIG_ARRAY=""
-CT_LIBC_GLIBC_CONFIGPARMS=""
-CT_LIBC_GLIBC_EXTRA_CFLAGS=""
-CT_LIBC_EXTRA_CC_ARGS=""
-# CT_LIBC_ENABLE_FORTIFIED_BUILD is not set
-# CT_LIBC_DISABLE_VERSIONING is not set
-CT_LIBC_OLDEST_ABI=""
-# CT_LIBC_GLIBC_FORCE_UNWIND is not set
-CT_LIBC_GLIBC_USE_PORTS=y
-CT_LIBC_ADDONS_LIST=""
-
-#
-# WARNING !!!                                            
-#
-
-#
-#   For glibc >= 2.8, it can happen that the tarballs    
-#
-
-#
-#   for the addons are not available for download.       
-#
-
-#
-#   If that happens, bad luck... Try a previous version  
-#
-
-#
-#   or try again later... :-(                            
-#
-# CT_LIBC_LOCALES is not set
-CT_LIBC_GLIBC_KERNEL_VERSION_NONE=y
-# CT_LIBC_GLIBC_KERNEL_VERSION_AS_HEADERS is not set
-# CT_LIBC_GLIBC_KERNEL_VERSION_CHOSEN is not set
-CT_LIBC_GLIBC_MIN_KERNEL=""
+CT_LIBC_UCLIBC_LNXTHRD=""
+# CT_LIBC_UCLIBC_LOCALES is not set
+# CT_LIBC_UCLIBC_WCHAR is not set
 
 #
 # Debug facilities

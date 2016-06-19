@@ -1,0 +1,150 @@
+diff -Nuar o/configure t/configure
+--- o/configure	2016-05-26 19:24:34.000000000 +0300
++++ t/configure	2016-05-26 19:23:43.000000000 +0300
+@@ -236,7 +236,11 @@
+         for item in ${lib}; do
+             for ext in ${lib_exts}; do
+                 printf "Checking for '${item}.${ext}'... "
+-                where="$( gcc -print-file-name="${item}.${ext}" )"
++                # where="$( gcc -print-file-name="${item}.${ext}" )"
++                where="${item}.${ext}"
++                if [ -e "/usr/lib/${item}.${ext}" ]; then
++                    where="/usr/lib/${item}.${ext}"
++                fi
+                 if [ "${where}" != "${item}.${ext}" ]; then
+                     where="$( readlink "${where}" )"
+                     status=yes
+diff -Nuar o/kconfig/kconfig.mk t/kconfig/kconfig.mk
+--- o/kconfig/kconfig.mk	2016-06-19 16:01:20.000000000 +0300
++++ t/kconfig/kconfig.mk	2016-05-26 19:31:52.000000000 +0300
+@@ -67,7 +67,7 @@
+ 
+ # Build flags
+ CFLAGS = -DCONFIG_=\"CT_\" -DPACKAGE="\"crosstool-NG $(CT_VERSION)\""
+-LDFLAGS =
++LDFLAGS = -lncurses
+ 
+ # Compiler flags to use gettext
+ INTL_CFLAGS = $(shell $(SHELL) $(check_gettext) $(HOST_CC) $(EXTRA_CFLAGS))
+diff -Nuar o/patches/eglibc/linaro-2.19-2014.08/001-libintl.patch t/patches/eglibc/linaro-2.19-2014.08/001-libintl.patch
+--- o/patches/eglibc/linaro-2.19-2014.08/001-libintl.patch	1970-01-01 02:00:00.000000000 +0200
++++ t/patches/eglibc/linaro-2.19-2014.08/001-libintl.patch	2016-06-19 17:04:46.000000000 +0300
+@@ -0,0 +1,11 @@
++diff -Nuar o/Makefile.in m/Makefile.in
++--- o/Makefile.in      2014-08-01 17:39:34.000000000 +0300
+++++ m/Makefile.in      2014-09-26 00:06:30.000000000 +0300
++@@ -6,6 +6,7 @@
++ .PHONY: all install bench
++ 
++ all .DEFAULT:
+++	C_INCLUDE_PATH="/opt/local/include" BUILD_LDFLAGS="-L/opt/local/lib -lintl"; export C_INCLUDE_PATH BUILD_LDFLAGS; \
++ 	$(MAKE) -r PARALLELMFLAGS="$(PARALLELMFLAGS)" -C $(srcdir) objdir=`pwd` $@
++ 
++ install:
+diff -Nuar o/patches/gcc/linaro-4.9-2014.09/0001-nested-bracket.patch t/patches/gcc/linaro-4.9-2014.09/0001-nested-bracket.patch
+--- o/patches/gcc/linaro-4.9-2014.09/0001-nested-bracket.patch	1970-01-01 02:00:00.000000000 +0200
++++ t/patches/gcc/linaro-4.9-2014.09/0001-nested-bracket.patch	2016-06-19 17:04:00.000000000 +0300
+@@ -0,0 +1,13 @@
++diff -Naur o/Makefile.in m/Makefile.in
++--- o/Makefile.in      2014-09-24 00:49:00.000000000 +0300
+++++ m/Makefile.in      2014-09-24 02:49:29.000000000 +0300
++@@ -9986,6 +9986,9 @@
++ 	test ! -f $(HOST_SUBDIR)/gcc/Makefile || exit 0; \
++ 	$(SHELL) $(srcdir)/mkinstalldirs $(HOST_SUBDIR)/gcc ; \
++ 	$(HOST_EXPORTS)  \
+++	CFLAGS="$(CFLAGS) -fbracket-depth=1024"; export CFLAGS; \
+++	CXXFLAGS="$(CXXFLAGS) -fbracket-depth=1024"; export CXXFLAGS; \
+++	CPPFLAGS="$(CPPFLAGS) -fbracket-depth=1024"; export CPPFLAGS; \
++ 	echo Configuring in $(HOST_SUBDIR)/gcc; \
++ 	cd "$(HOST_SUBDIR)/gcc" || exit 1; \
++ 	case $(srcdir) in \
+diff -Nuar o/patches/gmp/5.0.2/100-fix-ptrdiff_t.patch t/patches/gmp/5.0.2/100-fix-ptrdiff_t.patch
+--- o/patches/gmp/5.0.2/100-fix-ptrdiff_t.patch	1970-01-01 02:00:00.000000000 +0200
++++ t/patches/gmp/5.0.2/100-fix-ptrdiff_t.patch	2016-06-19 16:19:31.000000000 +0300
+@@ -0,0 +1,17 @@
++diff -Nuar o/gmp-h.in m/gmp-h.in
++--- o/gmp-h.in 2011-05-08 12:49:29.000000000 +0300
+++++ m/gmp-h.in 2016-04-02 19:45:03.000000000 +0300
++@@ -45,13 +45,11 @@
++ #ifndef __GNU_MP__
++ #define __GNU_MP__ 5
++ 
++-#define __need_size_t  /* tell gcc stddef.h we only want size_t */
++ #if defined (__cplusplus)
++ #include <cstddef>     /* for size_t */
++ #else
++ #include <stddef.h>    /* for size_t */
++ #endif
++-#undef __need_size_t
++ 
++ /* Instantiated by configure. */
++ #if ! defined (__GMP_WITHIN_CONFIGURE)
+diff -Nuar o/patches/ncurses/5.9/001-pointer.patch t/patches/ncurses/5.9/001-pointer.patch
+--- o/patches/ncurses/5.9/001-pointer.patch	1970-01-01 02:00:00.000000000 +0200
++++ t/patches/ncurses/5.9/001-pointer.patch	2016-06-19 17:25:54.000000000 +0300
+@@ -0,0 +1,42 @@
++diff -Nuar o/c++/cursesf.h m/c++/cursesf.h
++--- o/c++/cursesf.h	2005-08-13 21:08:24.000000000 +0300
+++++ m/c++/cursesf.h	2014-09-23 00:01:02.000000000 +0300
++@@ -681,7 +681,7 @@
++ 		   const T* p_UserData = STATIC_CAST(T*)(0),
++ 		   bool with_frame=FALSE,
++ 		   bool autoDelete_Fields=FALSE)
++-    : NCursesForm (Fields, with_frame, autoDelete_Fields) {
+++    : NCursesForm (&Fields, with_frame, autoDelete_Fields) {
++       if (form)
++ 	set_user (const_cast<void *>(p_UserData));
++   };
++@@ -694,7 +694,7 @@
++ 		   const T* p_UserData = STATIC_CAST(T*)(0),
++ 		   bool with_frame=FALSE,
++ 		   bool autoDelete_Fields=FALSE)
++-    : NCursesForm (Fields, nlines, ncols, begin_y, begin_x,
+++    : NCursesForm (&Fields, nlines, ncols, begin_y, begin_x,
++ 		   with_frame, autoDelete_Fields) {
++       if (form)
++ 	set_user (const_cast<void *>(p_UserData));
++diff -Nuar o/c++/cursesm.h m/c++/cursesm.h
++--- o/c++/cursesm.h	2005-08-13 21:10:36.000000000 +0300
+++++ m/c++/cursesm.h	2014-09-23 00:03:01.000000000 +0300
++@@ -639,7 +639,7 @@
++ 		   const T* p_UserData = STATIC_CAST(T*)(0),
++ 		   bool with_frame=FALSE,
++ 		   bool autoDelete_Items=FALSE)
++-    : NCursesMenu (Items, with_frame, autoDelete_Items) {
+++    : NCursesMenu (&Items, with_frame, autoDelete_Items) {
++       if (menu)
++ 	set_user (const_cast<void *>(p_UserData));
++   };
++@@ -651,7 +651,7 @@
++ 		   int begin_x = 0,
++ 		   const T* p_UserData = STATIC_CAST(T*)(0),
++ 		   bool with_frame=FALSE)
++-    : NCursesMenu (Items, nlines, ncols, begin_y, begin_x, with_frame) {
+++    : NCursesMenu (&Items, nlines, ncols, begin_y, begin_x, with_frame) {
++       if (menu)
++ 	set_user (const_cast<void *>(p_UserData));
++   };
+diff -Nuar o/scripts/build/cross_extras/500-pkg_config.sh t/scripts/build/cross_extras/500-pkg_config.sh
+--- o/scripts/build/cross_extras/500-pkg_config.sh	2016-06-19 17:39:28.000000000 +0300
++++ t/scripts/build/cross_extras/500-pkg_config.sh	2016-06-19 17:40:25.000000000 +0300
+@@ -20,6 +20,7 @@
+     CT_Pushd "${CT_BUILD_DIR}/build-pkg-config"
+ 
+     CT_DoExecLog CFG \
++	CFLAGS="-std=gnu89" \
+         "${CT_SRC_DIR}/pkg-config-${CT_PKG_CONFIG_VERSION}/configure" \
+         --prefix="${CT_PREFIX_DIR}"            \
+         --build=${CT_BUILD}                    \
+diff -Nuar o/scripts/functions t/scripts/functions
+--- o/scripts/functions	2016-06-19 16:43:12.000000000 +0300
++++ t/scripts/functions	2016-06-19 16:44:12.000000000 +0300
+@@ -1196,7 +1196,7 @@
+     CT_DoLog STATE "  Restoring log file"
+     exec >/dev/null
+     case "${CT_DEBUG_CT_SAVE_STEPS_GZIP}" in
+-        y)  zcat "${state_dir}/log.gz" >"${tmp_log_file}";;
++        y)  gzcat "${state_dir}/log.gz" >"${tmp_log_file}";;
+         *)  cat "${state_dir}/log" >"${tmp_log_file}";;
+     esac
+     cat "${state_dir}/tail.log" >>"${tmp_log_file}"

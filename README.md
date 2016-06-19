@@ -1,12 +1,11 @@
 # crosstool-works
-Patches and configurations to build Linaro toolchains on OS X 10.9 (Mavericks) host system.
-This initial version provides OSX patch for Linaro 14.08 Release. Patches for further releases may be added to this repository.
+Patches and configurations to build Linaro toolchains on OS X (>=10.9) host systems.
+This version provides crosstool-ng patches for various Linaro releases and for target platforms. Patches for further releases may be added to this repository.
 
 ## Notes
-* Patch files located under "patches" directory and named as (crosstool-package-version).patch
-* ctworks script applies patches automatically according to selected crosstool-ng package.
-* Packages under "tarballs" directory automatically copied into the crosstool/.build/tarballs directory (to prevent re-downloading them).
-* You can place different packages and patches to work together.
+* Patch files located under "patches" directory and named as (crosstool-ng-linaro-version-release).patch
+* ctworks.sh script applies patches automatically according to selected crosstool-ng package.
+* You can configure ctworks to use with different releases (and patches).
 
 ## Toolchains Built and Tested
     arm-linux-gnueabi
@@ -19,53 +18,68 @@ This initial version provides OSX patch for Linaro 14.08 Release. Patches for fu
         Tested with Ralink RT5350, MIPS 24KEc V4.12, 32-bit LSB, Linux 3.3.8
     x86_64-linux-gnu
         Tested with Ubuntu VM, 64-bit LSB
-
-## Before You Begin
-Download crosstool-NG package from Linaro 14.08 release;
-
-	cd /path/to/ctworks
-	wget "http://releases.linaro.org/14.08/components/toolchain/binaries/crosstool-ng-linaro-1.13.1-4.9-2014.08.tar.bz2"
+    aarch64-linux-gnu
+        Tested with Amlogic-S905, 64-bit LSB
 
 ## Usage
-  * Change paths within x-x-uclibc files to point this "configs" directory like below:
+  * Download crosstool-ng packages from Linaro releases storage server (http://releases.linaro.org)
 
-	CT_LIBC_UCLIBC_CONFIG_FILE=/path/to/ctworks/configs/uClibc-x.x.config
+	> ./ctworks.sh get
 
-  * Create a case sensitive file system:
+  * Create case sensitive file system in a disk image (or you may use existing one):
 
-	./ctworks.sh dmgcreate
+	> ./ctworks.sh create|attach
 
-  * Run ctworks with "config" switch
+  * Run with "prepare" switch to extract crosstool-ng package and apply patches etc.
 
-	./ctworks.sh config
+	> ./ctworks.sh prepare
 
-  * Select appropriate package
+  * Run with "config" switch to configure crosstool-ng and follow instructions displayed to build toolchain
 
-  * Select desired configuration
+	> ./ctworks.sh configure
 
-  * Follow the instructins displayed and wait for compilation.
+  * Run with "eject" switch to unmount disk image.
 
-  * Copy tarballs from .build directory for later use;
+	> ./ctworks.sh eject
 
-	cp /path/to/ctworks/disk/crosstool*/.build/tarballs/* /path/to/ctworks/tarballs/
- 
-  * Find toolchain under "disk" folder and move it to your workspace
+  * Notes:
 
-  * Run ctworks with "eject" switch to unmount dmg file if you want to use it later.
+   - You may edit ctworks.config file to change your previously saved ctworks-configuration
+     If you remove some lines from this file, it will be asked again.
 
-	./ctworks.sh eject
+   - You may need to restart from a step when something goes wrong;
+     ./ct-ng list-steps
+     RESTART=libc_start_files ./ct-ng build
 
-  * Run ctworks with "clean" switch to delete dmg file completely.
+### Prerequisites
 
-	./ctworks.sh clean
+* Xcode and Command line tools
 
-## Linaro Resources
-14.08 Release
-> https://wiki.linaro.org/Cycles/1408/Release
+	> xcode-select --install
 
-Linux and Windows Binaries
-> http://releases.linaro.org/14.08/components/toolchain/binaries/
+* MacPorts should be installed. Required ports as follows (openwrt requires some of them also);
 
-crosstool-NG package from 14.08 Release
-> http://releases.linaro.org/14.08/components/toolchain/binaries/crosstool-ng-linaro-1.13.1-4.9-2014.08.tar.bz2
+	> sudo port install binutils gawk gsed grep gnutar gmake file findutils unrar wget coreutils e2fsprogs ossp-uuid asciidoc fastjar flex getopt gtk2 intltool jikes hs-zlib p5-extutils-makemaker python26 rsync ruby sdcc unzip bison autoconf help2man
 
+- ln -s /path/to/ports/bin/gsed /path/to/ports/bin/sed
+
+### Resources
+
+	http://releases.linaro.org/
+	https://developer.apple.com/library/ios/technotes/tn2339/_index.html
+	https://www.macports.org/install.php
+
+### Testbed
+
+	$ uname -a
+	Darwin gPro.local 15.5.0 Darwin Kernel Version 15.5.0: Tue Apr 19 18:36:36 PDT 2016; root:xnu-3248.50.21~8/RELEASE_X86_64 x86_64
+	$ gcc --version
+	Configured with: --prefix=/Applications/Xcode.app/Contents/Developer/usr --with-gxx-include-dir=/usr/include/c++/4.2.1
+	Apple LLVM version 7.3.0 (clang-703.0.31)
+	Target: x86_64-apple-darwin15.5.0
+	Thread model: posix
+	InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
+	$ /opt/local/bin/port version
+	Version: 2.3.4
+
+#### Enjoy!
