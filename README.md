@@ -1,6 +1,6 @@
 # crosstool-works
 Patches and configurations to build Linaro toolchains on OS X (>=10.9) host systems.
-This version provides crosstool-ng patches for various Linaro releases and for target platforms. Patches for further releases may be added to this repository.
+This version provides crosstool-ng patches for various Linaro releases and for target platforms. Patches for further releases may be added to this repository. Please check block page for more details: http://wp.me/p44jAC-2P
 
 ## Notes
 * Patch files located under "patches" directory and named as (crosstool-ng-linaro-version-release).patch
