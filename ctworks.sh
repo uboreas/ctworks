@@ -369,8 +369,8 @@ function cthelp() {
 
 if [ ! -e "${relfile}" ]; then
   cat <<_EOF_ > "${relfile}"
-14.08;204e3e477db00c2c9c5d19e03548eb8a;http://releases.linaro.org/14.08/components/toolchain/binaries/crosstool-ng-linaro-1.13.1-4.9-2014.08.tar.bz2
-14.09;8a01fde555f1127885b16b55793cfb65;http://releases.linaro.org/14.09/components/toolchain/binaries/crosstool-ng-linaro-1.13.1-4.9-2014.09.tar.bz2
+14.08;204e3e477db00c2c9c5d19e03548eb8a;https://releases.linaro.org/archive/14.08/components/toolchain/binaries/crosstool-ng-linaro-1.13.1-4.9-2014.08.tar.bz2
+14.09;8a01fde555f1127885b16b55793cfb65;https://releases.linaro.org/archive/14.09/components/toolchain/binaries/crosstool-ng-linaro-1.13.1-4.9-2014.09.tar.bz2
 _EOF_
 fi
 
